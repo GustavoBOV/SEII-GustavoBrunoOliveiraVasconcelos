@@ -1,0 +1,22 @@
+a) As etapas do processo de compilação são:
+Preprocessing - o processo de compilação realiza os comando que surgem após
+as hashtags (#) como o #include (inserindo os arquivos e bibliotecas que serão
+utilizadas no programa).
+Compilation Proper - traduz o codigo do programa da linguagem utilizada 
+para a linguagem de máquina(assembly), para que possa ser interpretada 
+pelo compilador.
+Assembly - gera um código binário o qual será interpretado pelo processador.
+Linking - a ligação entre os objetos obtidos na etapa do Assembly, assim
+fazendo o arquivo executável, facilitando a execussão para o usuário.
+
+b) -static - Em sistemas que há suporte à vinculação dinâmica, substituindo o 
+comando -pie e evitar o vinculo com bibliotecas compartilhadas. Não possui
+efeito em outros sistemas.
+   -g - Inclui no executável elementos utilizados pelos programas como gdb 
+ou ddd, que são para depuração.
+   -pendantic - ativa avisos, como por exemplo: itens proíbidos no ANSI, que 
+comumente são desativados por extensões do gcc.
+   -Wall - Exibe todos avisos de advertência na compilação.
+   -Os - Realiza uma otimização para o tamanho de código.
+   -O3 - Realiza uma otimização para o tamanho de código e tempo de execução
+ maior que os comandos O2 e O1.
