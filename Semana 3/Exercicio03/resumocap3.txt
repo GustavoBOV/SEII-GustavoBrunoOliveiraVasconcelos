@@ -1,0 +1,141 @@
+Capítulo 3:
+1.1
+	Todo processo em um sistema Linux é identificado por um ID de processo único,
+chamado também de PID. Eles são números de 16 bits distribuídos sequencialmente pelo
+sistema à medida que novos processos são criados, e os processos também possuem
+processos pais, que também possuem um ID (PPID).
+Se tratando de ID de processos em um programa C/C++, sempre deverá ser usado
+pid_t typedef, definido na biblioteca <sys/types.h>, e um programa pode obter o ID do
+processo em que está sendo executado com a chamada getpid() e do processo pai com
+getppid().
+	Quando executado por várias vezes, se terá vários IDs de processo diferentes, pois
+cada vez que ele é executado, é em um novo processo, diferente do processo pai, que se
+for executado todas as vezes em um mesmo shell, será o mesmo.
+
+1.2
+	O comando ps mostra os processos que estão rodando atualmente no sistema, e a
+versão do GNU/Linux possui várias opções de manipulação das informações mostradas,
+para terem maior compatibilidade com outros sistemas UNIX. Utilizar o comando os
+mostra os processos controlados pelo terminal ou do terminal em que ele foi invocado.
+	Como pode ser visto na imagem, é possível observar o PID dos processos assim
+como o TTY, o TIME e o CMD. Para que seja mais detalhado, o ps pode ser executado
+com as opções -e (mostra todos os processos rodando no sistema) e as opções -o pid,
+ppid, command dizem o que mostrar sobre cada processo, que são PID, PPID e o
+comando rodando nesse processo.
+
+1.3
+	Um comando pode ser morto utilizando-se o comando kill e o ID do processo,
+sendo que ele funciona com o envio de um sinal de terminação (SIGTERM), porém o
+comando também pode ser utilizado para enviar outros sinais aos processos.
+
+2.1
+	A função system na biblioteca padrão do C proporciona um jeito fácil de executar
+um comando de dentro de um programa, como se tivesse sido digitado em um shell, pois
+é criado um subprocesso que executa o shell pradrão (/bin/sh), onde o comando roda
+realmente.
+	A função do sistema retorna o status de saída do shell, porém se o shell não puder
+ser executado, é retornado 127, ou se ocorrer outro erro, -1, e está sujeito a todos os
+problemas do shell do sistema. Por distribuições diferentes usarem shell diferentes, é
+preferível usar fork e exec para criação de processos.
+
+2.2
+	O Linux possui a função fork, que faz um processo filho que é uma cópia exata do
+processo pai, mas também tem o conjunto de funções da família exec, que faz com que
+um determinado processo deixe de ser uma instância de um programa e, em vez disso,
+se tornar uma instância de outro programa. Para gerar um novo processo, primeiro usa-se
+fork para fazer uma cópia do processo atual. Então usa-se exec para transformar um
+desses processos em uma instância do programa que você deseja gerar.
+	Quando um programa chama o fork, um processo duplicado, chamado de processo
+filho, é criado e o processo pai continua executando o programa a partir do ponto em que
+o fork foi chamado, assim como o filho que executa o mesmo programa no mesmo lugar.
+Os dois se diferem pois tem IDs de processo diferentes, e para distinguir em qual está,
+um programa deve chamar getpid. Outra diferença é o valor de retorno dos dois
+processos, que ajudam o programa a diferenciar se está sendo executado como pai ou
+filho.
+	A função exec substitui o programa rodando em um processo com outro programa,
+e quando chamada, o processo imediatamente para a execução do programa e inicia a
+execução de um novo, do começo, desde que a chamada não contenha erros. Dentro da
+família exec, existem funções que variam ligeiramente em suas capacidades e como são
+chamados. Um padrão comum para executar um subprograma dentro de um programa é
+primeiro usar o fork no processo e, em seguida, o exec no subprograma. Isso permite que
+o programa continue a execução no processo pai enquanto o programa chamador é
+substituído pelo subprograma no processo filho.
+
+2.3
+	O Linux agenda os processos pai e filho de maneira independente, não havendo
+garantias sobre qual dos dois irá rodar primeiro, ou quanto ele irá rodar até ser
+interrompido pelo Linux para que outro processo seja executado, porém o Linux promete
+que cada processo, eventualmente, será executado. Isso pode ser mudado caso seja
+dado um nível de prioridade ao processo, sendo o atributo determinar o “niceness value”,
+que quanto maior, indica menor prioridade de execução. Para atribuir tal valor, é utilizado
+o comando nice, e para alterar o de um programa em execução, é utilizado o comando
+renice.
+
+3.0
+	Sinais são mecanismos utilizados no Linux para comunicação com e manipulação
+de processos, sendo tratado como uma mensagem especial enviada ao processo,
+portanto é executado de forma imediata, com prioridade sobre a função atual, ou até
+mesmo sobre a atual linha de código. Existem vários tipos de sinal, sendo cada um
+especificado pelo seu número de sinal, mas em programas, são comumente referidos
+pelos seus nomes.
+	Cada sinal possui uma disposição padrão, que determina o que acontecerá com o
+processo caso o programa não especifique algum outro comportamento, o que acontece
+em sua maioria. O Linux envia sinais para processos em resposta a algumas condições
+específicas, como SIGBUS, SIGSEV e SIGFPE, que podem ser enviados para processos
+que tentem executar uma operação ilegal, porém, um processo também pode enviar
+sinais para outro processo.
+	Como os sinais são assíncronos, o programa principal pode estar em um estado
+muito frágil quando um sinal é processado e, portanto, enquanto uma função de
+tratamento de sinal é executada. Portanto, deve-se evitar realizar qualquer operação de
+E/S ou chamar a maioria das bibliotecas e funções do sistema de manipuladores de sinal.
+
+4.0
+	Normalmente, um processo é terminado com o programa em execução chamando
+a função exit, ou chamando o retorno da função main, sendo que cada processo possui
+um código de saída, um número que o processo retorna ao seu pai. O código de saída é o
+argumento passado para a função exit, ou o valor retornado pela main.
+	Além dessas maneiras, um processo pode ser finalizado anormalmente, em
+resposta a um sinal, como no caso dos sinais citados anteriormente SIGBUS, SIGSEV e
+SIGFPE, enquanto que outros sinais são usados para finalizar os processos
+explicitamente, como no sinal SIGINT que é enviado ao processo quando o usuário tenta
+terminar o processo por meio do terminal digitando CTRL+C, e no SIGTERM, enviado
+pelo comando kill. A disposição padrão para ambos é encerrar o processo, porém ao
+chamar a função abort, um processo envia a si mesmo o sinal SIGABRT, que finaliza o
+processo e produz um arquivo core. O sinal de terminação mais poderoso é SIGKILL, que
+encerra um processo imediatamente e não pode ser bloqueado ou manipulado por um
+programa. Todos eles podem ser enviados utilizando-se o comando kill especificando
+argumentos extras.
+	Por convenção, o código de saída é usado para indicar se um programa executou
+corretamente, sendo que, caso ele retorne 0, significa que sua execução ocorreu
+corretamente, e qualquer valor diferente disso indica que algum erro ocorreu, sendo que o
+valor particular retornado pode dar alguma indicação da natureza do erro.
+
+4.1
+	No exemplo presente na figura 6, pode-se notar que a saída do programa ls
+geralmente aparece após o “programa principal” já ter sido concluído. Isso porque o
+processo filho, no qual o ls é executado, é escalonado independentemente do processo
+pai. Como o Linux é um sistema operacional multitarefa, ambos os processos parecem
+ser executados simultaneamente e você não pode prever se o programa ls terá a chance
+de ser executado antes ou depois da execução do processo pai.
+	Em algumas situações, porém, é desejável que o processo pai espere até que um
+ou mais processos filhos foram concluídos. Isso pode ser feito com a família wait do
+sistema chamadas, que permitem que você espere que um processo termine de ser
+executado e habilite o processo pai para recuperar informações sobre o término de seu
+filho.
+
+4.2
+	Um processo filho, some quando termina de executar e passa o status de
+finalização ao seu processo pai, caso este tenha chamado a função wait. Caso a função
+wait não tenha sido chamada pelo pai, o processo filho vira um processo zumbi, para que
+as informações sobre a sua finalização não sejam perdidas, sendo então um processo
+que terminou, porém ainda não foi limpo e continua consumindo recursos do sistema, pois
+essa limpeza é uma responsabilidade do processo pai, coisa que a função wait faz para
+que o processo pai não precise procurar onde o filho está executando antes de esperar
+por ele.
+	Uma maneira de limpar os processos filhos é chamar wait3 ou wait4
+periodicamente, para limpar filhos zumbi, e esses comandos podem ser chamados
+juntamente com a flag WNOHANG, que permite com que a função rode em um modo de
+não bloqueio, que limpará processos filho terminados e retornará seus IDs, se existirem,
+ou simplesmente retornará 0, caso não existam processos filho. Porém, uma outra
+maneira de fazer isso, é notificar o processo pai quando um processo filho finaliza, o que
+o Linux faz por meio do sinal SIGCHLD.
